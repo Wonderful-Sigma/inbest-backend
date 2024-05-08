@@ -1,13 +1,10 @@
 package sigma.inbest.application.global.response;
 
 import jakarta.annotation.Nullable;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-
+@Getter
 public class HttpStateResponse<T>{
     private final HttpStatus state;
     private final String message;

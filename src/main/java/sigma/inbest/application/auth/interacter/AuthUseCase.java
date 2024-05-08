@@ -1,20 +1,20 @@
 package sigma.inbest.application.auth.interacter;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import sigma.inbest.adapter.security.jwt.JwtType;
 import sigma.inbest.application.auth.interacter.response.TokenResponse;
 import sigma.inbest.application.auth.interacter.validator.Validator;
-import sigma.inbest.application.user.UserDBPort;
 import sigma.inbest.application.auth.port.out.TokenPort;
 import sigma.inbest.application.global.response.HttpStateResponse;
-import sigma.inbest.application.global.response.InbestException;
+import sigma.inbest.application.user.UserDBPort;
 import sigma.inbest.domain.user.User;
 import sigma.inbest.domain.user.value.UserId;
 import sigma.inbest.domain.user.value.UserInfo;
 import sigma.inbest.domain.user.value.UserPassword;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -26,13 +26,16 @@ public class AuthUseCase {
     private final Validator validator;
 
     public HttpStateResponse<User> signup(String email, String password, String nickname){
-        Optional<User> testDum = userDBPort.findByEmail(email);
-        if(testDum.isPresent()) throw new InbestException(HttpStatus.BAD_REQUEST,"이미 가입한 이메일입니다.");
-        validator.isValidEmail(email);
-        validator.isValidPassword(password);
-        final User user = userDBPort.save(new User(new UserId(email),new UserPassword(password, "Undefined"), new UserInfo(nickname)));
-        // 계좌 생성 부분 추가
-        return new HttpStateResponse<>(HttpStatus.OK,"회원가입을 성공했습니다!", user);
+        try{
+            Optional<User> testDum = userDBPort.findByEmail(email);
+        }catch (NoSuchElementException e){
+            validator.isValidEmail(email);
+            validator.isValidPassword(password);
+            final User user = userDBPort.save(new User(new UserId(email),new UserPassword(password, "Undefined"), new UserInfo(nickname)));
+            // 계좌 생성 부분 추가
+            return new HttpStateResponse<>(HttpStatus.OK,"회원가입을 성공했습니다!", user);
+        }
+        return new HttpStateResponse<>(HttpStatus.BAD_REQUEST,"이미 가입한 이메일입니다.", null);
     }
 
     public HttpStateResponse<String> setSimplePassword(String email, String simplePassword){
